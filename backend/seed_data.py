@@ -1,0 +1,228 @@
+"""
+Run this once to populate MongoDB with starter categories and products:
+    python seed_data.py
+"""
+import datetime
+from utils.db import categories_col, products_col, users_col
+from utils.auth_utils import hash_password
+
+CATEGORIES = [
+    {"name": "Fever & Cold", "slug": "fever-cold", "icon": "🤒", "description": "Relief for fever, cold, cough & flu symptoms."},
+    {"name": "Pain Relief", "slug": "pain-relief", "icon": "💊", "description": "Sprays, gels, and tablets for everyday aches."},
+    {"name": "Ayurvedic Medicines", "slug": "ayurvedic-medicines", "icon": "🌿", "description": "Traditional herbal formulations for holistic wellness."},
+    {"name": "Digestive Care", "slug": "digestive-care", "icon": "🍵", "description": "Support for everyday digestive comfort."},
+    {"name": "First Aid", "slug": "first-aid", "icon": "➕", "description": "Essentials for minor cuts, sprains & emergencies."},
+    {"name": "Bandages", "slug": "bandages", "icon": "🩹", "description": "Adhesive bandages, crepe & gauze rolls."},
+    {"name": "Cotton", "slug": "cotton", "icon": "🧵", "description": "Absorbent cotton rolls and pads."},
+    {"name": "Oils", "slug": "oils", "icon": "🪔", "description": "Ayurvedic and therapeutic massage oils."},
+    {"name": "Soaps", "slug": "soaps", "icon": "🧼", "description": "Herbal and medicated soaps."},
+    {"name": "Creams & Tubes", "slug": "creams-tubes", "icon": "🧴", "description": "Skin creams, ointments and tubes."},
+    {"name": "Drops", "slug": "drops", "icon": "💧", "description": "Eye, ear and nasal drops."},
+    {"name": "Syrups", "slug": "syrups", "icon": "🥄", "description": "Liquid formulations for cough, cold & digestion."},
+    {"name": "Baby Care", "slug": "baby-care", "icon": "🍼", "description": "Gentle products for your little one."},
+    {"name": "Personal Care", "slug": "personal-care", "icon": "🧖", "description": "Everyday hygiene and grooming essentials."},
+    {"name": "Health Supplements", "slug": "health-supplements", "icon": "🌱", "description": "Vitamins, minerals and immunity boosters."},
+]
+
+PACK_OPTIONS_TABLET = [
+    {"label": "1 piece", "multiplier": 1},
+    {"label": "10 pieces", "multiplier": 10},
+    {"label": "1 box", "multiplier": 30},
+    {"label": "2 boxes", "multiplier": 60},
+    {"label": "4 boxes", "multiplier": 120},
+]
+PACK_OPTIONS_BOTTLE = [
+    {"label": "1 bottle", "multiplier": 1},
+    {"label": "1 box (6 bottles)", "multiplier": 6},
+    {"label": "2 boxes", "multiplier": 12},
+    {"label": "4 boxes", "multiplier": 24},
+]
+PACK_OPTIONS_SINGLE = [
+    {"label": "1 piece", "multiplier": 1},
+    {"label": "2 pieces", "multiplier": 2},
+    {"label": "1 box (pack of 5)", "multiplier": 5},
+]
+
+PRODUCTS = [
+    dict(name="Crocin Advance Tablet", brand="GSK", category="fever-cold",
+         description="Effective relief from fever and mild to moderate pain. Fast-acting paracetamol formulation.",
+         image="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600",
+         price=2.5, mrp=3.0, stock=500, unit_label="tablet", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.6, rating_count=212, tags=["fever", "cold", "pain"], featured=True, prescription_required=False),
+    dict(name="Vicks Vaporub", brand="Vicks", category="fever-cold",
+         description="Soothing vapour rub for blocked nose, cold symptoms and minor body aches.",
+         image="https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600",
+         price=110, mrp=130, stock=200, unit_label="jar", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.7, rating_count=340, tags=["cold", "vapour"], featured=True, prescription_required=False),
+    dict(name="Volini Pain Relief Spray", brand="Sun Pharma", category="pain-relief",
+         description="Fast-acting spray for muscle and joint pain relief, ideal after exercise or strain.",
+         image="https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600",
+         price=185, mrp=210, stock=150, unit_label="bottle", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.5, rating_count=189, tags=["pain", "muscle", "spray"], featured=True, prescription_required=False),
+    dict(name="Moov Pain Relief Cream", brand="RB", category="pain-relief",
+         description="Roll-on cream for quick relief from back pain, joint pain, and sprains.",
+         image="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=600",
+         price=140, mrp=160, stock=180, unit_label="tube", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.4, rating_count=98, tags=["pain", "cream"], featured=False, prescription_required=False),
+    dict(name="Chyawanprash Immunity Booster", brand="Dabur", category="ayurvedic-medicines",
+         description="Traditional Ayurvedic formulation with Amla and 40+ herbs to support daily immunity.",
+         image="https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=600",
+         price=320, mrp=380, stock=120, unit_label="jar", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.8, rating_count=520, tags=["immunity", "ayurvedic"], featured=True, prescription_required=False),
+    dict(name="Triphala Churna", brand="Patanjali", category="ayurvedic-medicines",
+         description="Classic Ayurvedic blend of three fruits, traditionally used for digestive wellness.",
+         image="https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?w=600",
+         price=95, mrp=110, stock=160, unit_label="pack", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.5, rating_count=143, tags=["digestion", "ayurvedic"], featured=False, prescription_required=False),
+    dict(name="Eno Fruit Salt", brand="GSK", category="digestive-care",
+         description="Quick relief from acidity, gas and indigestion in a refreshing fruit-flavoured salt.",
+         image="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600",
+         price=20, mrp=25, stock=300, unit_label="sachet", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.6, rating_count=265, tags=["digestion", "acidity"], featured=True, prescription_required=False),
+    dict(name="Digene Gel", brand="Abbott", category="digestive-care",
+         description="Antacid gel for fast relief from acidity, heartburn and gas.",
+         image="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600",
+         price=110, mrp=125, stock=140, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.3, rating_count=87, tags=["digestion", "acidity"], featured=False, prescription_required=False),
+    dict(name="First Aid Kit (Compact)", brand="HerbalHub Essentials", category="first-aid",
+         description="A compact home first-aid kit with bandages, antiseptic, cotton and basic tools.",
+         image="https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=600",
+         price=399, mrp=499, stock=80, unit_label="kit", pack_options=PACK_OPTIONS_SINGLE,
+         rating=4.7, rating_count=64, tags=["first aid", "emergency"], featured=True, prescription_required=False),
+    dict(name="Dettol Antiseptic Liquid", brand="Reckitt", category="first-aid",
+         description="Trusted antiseptic for cuts, wounds and household disinfection.",
+         image="https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=600",
+         price=145, mrp=160, stock=220, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.8, rating_count=410, tags=["first aid", "antiseptic"], featured=False, prescription_required=False),
+    dict(name="Elastic Crepe Bandage", brand="HerbalHub Essentials", category="bandages",
+         description="Stretchable crepe bandage for sprains, strains and joint support.",
+         image="https://images.unsplash.com/photo-1632053002434-e0729696eb9c?w=600",
+         price=45, mrp=55, stock=200, unit_label="roll", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.4, rating_count=58, tags=["bandage", "support"], featured=False, prescription_required=False),
+    dict(name="Adhesive Bandage Strips", brand="Johnson & Johnson", category="bandages",
+         description="Waterproof adhesive strips for minor cuts and wounds, pack of 20.",
+         image="https://images.unsplash.com/photo-1632053002434-e0729696eb9c?w=600",
+         price=60, mrp=70, stock=260, unit_label="pack", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.6, rating_count=121, tags=["bandage"], featured=True, prescription_required=False),
+    dict(name="Absorbent Cotton Roll", brand="HerbalHub Essentials", category="cotton",
+         description="Soft, absorbent medical-grade cotton roll for wound care and general use.",
+         image="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=600",
+         price=55, mrp=65, stock=240, unit_label="roll", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.5, rating_count=76, tags=["cotton", "wound care"], featured=False, prescription_required=False),
+    dict(name="Sterile Cotton Pads", brand="HerbalHub Essentials", category="cotton",
+         description="Pre-cut sterile cotton pads, ideal for sensitive skin and wound dressing.",
+         image="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=600",
+         price=70, mrp=85, stock=190, unit_label="pack", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.3, rating_count=44, tags=["cotton"], featured=False, prescription_required=False),
+    dict(name="Ayurvedic Hair Oil", brand="Dabur", category="oils",
+         description="Herbal hair oil blended with Amla, Bhringraj and Brahmi for healthy hair.",
+         image="https://images.unsplash.com/photo-1626954079673-9b32e3a5af6e?w=600",
+         price=180, mrp=210, stock=130, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.6, rating_count=298, tags=["oil", "hair", "ayurvedic"], featured=True, prescription_required=False),
+    dict(name="Pain Relief Massage Oil", brand="Himalaya", category="oils",
+         description="Warm herbal massage oil traditionally used to ease everyday muscle stiffness.",
+         image="https://images.unsplash.com/photo-1626954079673-9b32e3a5af6e?w=600",
+         price=210, mrp=240, stock=110, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.5, rating_count=156, tags=["oil", "pain", "massage"], featured=False, prescription_required=False),
+    dict(name="Neem Herbal Soap", brand="Himalaya", category="soaps",
+         description="Gentle neem-infused soap that helps keep skin clear and fresh.",
+         image="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600",
+         price=55, mrp=65, stock=300, unit_label="bar", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.4, rating_count=132, tags=["soap", "skin"], featured=False, prescription_required=False),
+    dict(name="Sandalwood Ayurvedic Soap", brand="Patanjali", category="soaps",
+         description="Traditional sandalwood soap for soft, nourished skin.",
+         image="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600",
+         price=45, mrp=55, stock=280, unit_label="bar", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.3, rating_count=91, tags=["soap"], featured=False, prescription_required=False),
+    dict(name="Boroplus Antiseptic Cream", brand="Emami", category="creams-tubes",
+         description="Moisturizing antiseptic cream for dry skin, minor cuts and everyday care.",
+         image="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600",
+         price=65, mrp=75, stock=260, unit_label="tube", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.6, rating_count=234, tags=["cream", "skin"], featured=True, prescription_required=False),
+    dict(name="Calamine Soothing Cream", brand="HerbalHub Essentials", category="creams-tubes",
+         description="Cooling cream for minor skin irritation and itching relief.",
+         image="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600",
+         price=85, mrp=100, stock=140, unit_label="tube", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.2, rating_count=52, tags=["cream", "skin"], featured=False, prescription_required=False),
+    dict(name="Saline Nasal Drops", brand="HerbalHub Essentials", category="drops",
+         description="Gentle saline drops to relieve nasal dryness and congestion, suitable for all ages.",
+         image="https://images.unsplash.com/photo-1626285861696-9f0bf5a49c6d?w=600",
+         price=75, mrp=90, stock=170, unit_label="bottle", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.5, rating_count=66, tags=["drops", "nasal", "cold"], featured=False, prescription_required=False),
+    dict(name="Eye Relief Drops", brand="HerbalHub Essentials", category="drops",
+         description="Lubricating eye drops for dryness and minor irritation relief.",
+         image="https://images.unsplash.com/photo-1626285861696-9f0bf5a49c6d?w=600",
+         price=95, mrp=110, stock=150, unit_label="bottle", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.4, rating_count=47, tags=["drops", "eye"], featured=False, prescription_required=False),
+    dict(name="Honitus Cough Syrup", brand="Dabur", category="syrups",
+         description="Ayurvedic cough syrup with honey and herbs for soothing relief.",
+         image="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=600",
+         price=120, mrp=140, stock=160, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.6, rating_count=178, tags=["syrup", "cough", "ayurvedic"], featured=True, prescription_required=False),
+    dict(name="Digestive Tonic Syrup", brand="Himalaya", category="syrups",
+         description="Herbal tonic syrup traditionally used to support healthy digestion.",
+         image="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=600",
+         price=135, mrp=155, stock=120, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.3, rating_count=58, tags=["syrup", "digestion"], featured=False, prescription_required=False),
+    dict(name="Baby Massage Oil", brand="Himalaya", category="baby-care",
+         description="Gentle, dermatologically tested massage oil specially formulated for babies.",
+         image="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600",
+         price=160, mrp=185, stock=130, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.8, rating_count=204, tags=["baby", "oil"], featured=True, prescription_required=False),
+    dict(name="Baby Diaper Rash Cream", brand="Johnson & Johnson", category="baby-care",
+         description="Soothing barrier cream to help protect baby's delicate skin from rashes.",
+         image="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600",
+         price=190, mrp=215, stock=100, unit_label="tube", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.7, rating_count=112, tags=["baby", "cream"], featured=False, prescription_required=False),
+    dict(name="Herbal Toothpaste", brand="Patanjali", category="personal-care",
+         description="Ayurvedic toothpaste with neem and clove extracts for everyday oral care.",
+         image="https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=600",
+         price=80, mrp=95, stock=220, unit_label="tube", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.5, rating_count=189, tags=["personal care", "oral"], featured=False, prescription_required=False),
+    dict(name="Hand Sanitizer Gel", brand="HerbalHub Essentials", category="personal-care",
+         description="Quick-drying sanitizer gel that helps eliminate germs on the go.",
+         image="https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=600",
+         price=99, mrp=120, stock=300, unit_label="bottle", pack_options=PACK_OPTIONS_BOTTLE,
+         rating=4.4, rating_count=145, tags=["personal care", "hygiene"], featured=True, prescription_required=False),
+    dict(name="Multivitamin Tablets", brand="HealthVit", category="health-supplements",
+         description="Daily multivitamin and mineral supplement to support general wellbeing.",
+         image="https://images.unsplash.com/photo-1550572017-edd951b55104?w=600",
+         price=350, mrp=420, stock=140, unit_label="tablet", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.6, rating_count=267, tags=["supplement", "vitamin", "immunity"], featured=True, prescription_required=False),
+    dict(name="Omega-3 Fish Oil Capsules", brand="HealthVit", category="health-supplements",
+         description="Fish oil capsules rich in Omega-3 fatty acids to support heart and brain health.",
+         image="https://images.unsplash.com/photo-1550572017-edd951b55104?w=600",
+         price=480, mrp=560, stock=90, unit_label="capsule", pack_options=PACK_OPTIONS_TABLET,
+         rating=4.7, rating_count=198, tags=["supplement", "omega3"], featured=False, prescription_required=False),
+]
+
+
+def run():
+    categories_col.delete_many({})
+    products_col.delete_many({})
+
+    categories_col.insert_many(CATEGORIES)
+    print(f"Inserted {len(CATEGORIES)} categories")
+
+    for p in PRODUCTS:
+        p["created_at"] = datetime.datetime.utcnow()
+    products_col.insert_many(PRODUCTS)
+    print(f"Inserted {len(PRODUCTS)} products")
+
+    if not users_col.find_one({"email": "admin@herbalhub.com"}):
+        users_col.insert_one({
+            "name": "HerbalHub Admin",
+            "email": "admin@herbalhub.com",
+            "phone": "9999999999",
+            "password_hash": hash_password("Admin@123"),
+            "role": "admin",
+            "addresses": [],
+            "created_at": datetime.datetime.utcnow(),
+        })
+        print("Created default admin user -> admin@herbalhub.com / Admin@123")
+
+    print("Seed complete.")
+
+
+if __name__ == "__main__":
+    run()
