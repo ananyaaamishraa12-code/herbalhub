@@ -46,7 +46,7 @@ PACK_OPTIONS_SINGLE = [
 PRODUCTS = [
     dict(name="Crocin Advance Tablet", brand="GSK", category="fever-cold",
          description="Effective relief from fever and mild to moderate pain. Fast-acting paracetamol formulation.",
-         image="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600",
+        image ="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600",
          price=2.5, mrp=3.0, stock=500, unit_label="tablet", pack_options=PACK_OPTIONS_TABLET,
          rating=4.6, rating_count=212, tags=["fever", "cold", "pain"], featured=True, prescription_required=False),
     dict(name="Vicks Vaporub", brand="Vicks", category="fever-cold",
@@ -195,7 +195,54 @@ PRODUCTS = [
          price=480, mrp=560, stock=90, unit_label="capsule", pack_options=PACK_OPTIONS_TABLET,
          rating=4.7, rating_count=198, tags=["supplement", "omega3"], featured=False, prescription_required=False),
 ]
+# Fix product images mapping
+IMAGE_MAP = {
+   "Crocin Advance Tablet": "/Crocin Advance Tablet image.jpg",
+    "Vicks Vaporub": "/Vicks Vaporub jar image.jpg",
+    "Volini Pain Relief Spray": "/Volini spray image.jpg",
+    "Chyawanprash Immunity Booster": "/Dabur Chyawanprash jar image.jpg",
+    "Moov Pain Relief Cream": "/Moov pain relief cream image.avif",
+    "Triphala Churna": "/triphala churna.webp",
+    "Eno Fruit Salt": "/Eno Fruit Salt.webp",
+    "Digene Gel": "/Digene Gel.webp",
 
+    "First Aid Kit (Compact)": "/First Aid Kit (Compact.webp",
+    "Dettol Antiseptic Liquid": "/Dettol Antiseptic Liquid.webp",
+
+    "Elastic Crepe Bandage": "/Elastic Crepe Bandage.webp",
+    "Adhesive Bandage Strips": "/Adhesive Bandage Strips.webp",
+
+    "Absorbent Cotton Roll": "/Absorbent Cotton Rol.webp",
+    "Sterile Cotton Pads": "/Sterile Cotton Pads.webp",
+
+    "Ayurvedic Hair Oil": "/Ayurvedic Hair Oil.webp",
+    "Pain Relief Massage Oil": "/Pain Relief Massage Oil.webp",
+
+    "Neem Herbal Soap": "/Neem Herbal Soap.webp",
+    "Sandalwood Ayurvedic Soap": "/Sandalwood Ayurvedic Soap.webp",
+
+    "Boroplus Antiseptic Cream": "/Boroplus Antiseptic Cream.webp",
+    "Calamine Soothing Cream": "/Calamine Soothing Cream.webp",
+
+    "Saline Nasal Drops": "/Saline Nasal Drops.webp",
+    "Eye Relief Drops": "/Eye Relief Drops.webp",
+
+    "Honitus Cough Syrup": "/Honitus Cough Syrup.webp",
+    "Digestive Tonic Syrup": "/Digestive Tonic Syrup.webp",
+
+    "Baby Massage Oil": "/Baby Massage Oil.webp",
+    "Baby Diaper Rash Cream": "/Baby Diaper Rash Cream.webp",
+
+    "Herbal Toothpaste": "/Herbal Toothpaste.webp",
+    "Hand Sanitizer Gel": "/Hand Sanitizer Ge.webp",
+
+    "Multivitamin Tablets": "/Multivitamin Tablets.webp",
+    "Omega-3 Fish Oil Capsules": "/Omega-3 Fish Oil Capsules.webp",
+} 
+
+for product in PRODUCTS:
+    if product["name"] in IMAGE_MAP:
+        product["image"] = IMAGE_MAP[product["name"]]
 
 def run():
     categories_col.delete_many({})

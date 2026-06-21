@@ -55,6 +55,40 @@ export default function About() {
           ))}
         </div>
       </section>
+   
+   <section className="container-pad py-16">
+  <div className="card p-8 text-center">
+
+    <span className="eyebrow">
+      Our Leadership 👔
+    </span>
+
+    <h2 className="font-display text-3xl font-bold text-forest-900 mt-3">
+      Meet Our Team 🤝
+    </h2>
+
+    <div className="mt-6 space-y-3 text-forest-700">
+
+      <p>
+        👩‍💼 <b>CEO:</b> Ananya Mishraa
+      </p>
+
+      <p>
+        👨‍💼 <b>Manager:</b> Kapil Mishra
+      </p>
+
+      <p>
+        📧 <b>Email:</b> support@herbalhub.com
+      </p>
+
+      <p>
+        📍 <b>Location:</b> New Delhi, India
+      </p>
+
+    </div>
+
+  </div>
+</section>
     </div>
   );
 }
