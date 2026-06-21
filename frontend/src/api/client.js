@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "/api",
+  baseURL: "baseURL: "https://herbalhub-6xev.onrender.com/api",
 });
 
 client.interceptors.request.use((config) => {
